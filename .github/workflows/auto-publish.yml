@@ -1,0 +1,118 @@
+name: Auto Publish to NPM
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src/**'
+      - 'package.json'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - uses: pnpm/action-setup@v3
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org/
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Install dependencies
+        run: pnpm install
+      
+      - name: Build
+        run: pnpm run build
+      
+      - name: Get current version
+        id: current_version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      
+      - name: Bump version
+        id: bump_version
+        run: |
+          # Get current version
+          CURRENT_VERSION="${{ steps.current_version.outputs.version }}"
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Remove pre-release suffix if exists (e.g., 10.0.0-alpha9 -> 10.0.0)
+          BASE_VERSION=$(echo $CURRENT_VERSION | sed 's/-.*$//')
+          
+          # Split version into parts
+          IFS='.' read -ra VERSION_PARTS <<< "$BASE_VERSION"
+          MAJOR="${VERSION_PARTS[0]}"
+          MINOR="${VERSION_PARTS[1]}"
+          PATCH="${VERSION_PARTS[2]}"
+          
+          # Increment patch version
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+          
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          # Update package.json
+          npm version $NEW_VERSION --no-git-tag-version
+      
+      - name: Check if version exists on npm
+        id: check_npm
+        run: |
+          NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
+          if npm view ok-klinechart@$NEW_VERSION version 2>/dev/null; then
+            echo "Version $NEW_VERSION already exists on npm"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version $NEW_VERSION does not exist on npm"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Commit version bump
+        if: steps.check_npm.outputs.exists == 'false'
+        run: |
+          git add package.json
+          git commit -m "chore: bump version to ${{ steps.bump_version.outputs.new_version }}"
+          git push
+      
+      - name: Create Git Tag
+        if: steps.check_npm.outputs.exists == 'false'
+        run: |
+          git tag v${{ steps.bump_version.outputs.new_version }}
+          git push origin v${{ steps.bump_version.outputs.new_version }}
+      
+      - name: Publish to NPM
+        if: steps.check_npm.outputs.exists == 'false'
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Create GitHub Release
+        if: steps.check_npm.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.bump_version.outputs.new_version }}
+          name: Release v${{ steps.bump_version.outputs.new_version }}
+          body: |
+            ## Changes in v${{ steps.bump_version.outputs.new_version }}
+            
+            Auto-generated release from main branch.
+            
+            ### Installation
+            ```bash
+            npm install ok-klinechart@${{ steps.bump_version.outputs.new_version }}
+            ```
+          draft: false
+          prerelease: false
