@@ -372,15 +372,27 @@ export default class EventHandlerImp {
       // because we scroll the page vertically often than horizontally
       const correctedXOffset = xOffset * 0.5
 
-      // a drag can be only if touch page scroll isn't allowed
-      const isVertDrag = yOffset >= correctedXOffset && !this._options.treatVertDragAsPageScroll()
-      const isHorzDrag = correctedXOffset > yOffset && !this._options.treatHorzDragAsPageScroll()
+      // Determine drag direction
+      const isVertDrag = yOffset >= correctedXOffset
+      const isHorzDrag = correctedXOffset > yOffset
 
-      // if drag event happened then we should revert preventDefault state to original one
-      // and try to process the drag event
-      // else we shouldn't prevent default of the event and ignore processing the drag event
-      if (!isVertDrag && !isHorzDrag) {
-        this._preventTouchDragProcess = true
+      // If long tap is active (crosshair shown), always process chart events and prevent page scroll
+      if (this._longTapActive) {
+        // Crosshair is active, lock page scroll and process all chart events
+        // Don't set _preventTouchDragProcess, let chart handle all movements
+      } else {
+        // Crosshair not active, check drag direction to decide behavior
+        if (isVertDrag && !this._options.treatVertDragAsPageScroll()) {
+          // Vertical drag without crosshair - allow page scroll by preventing chart drag processing
+          this._preventTouchDragProcess = true
+        } else {
+          // Horizontal drag or configured to treat as chart drag
+          const shouldPreventHorzDrag = isHorzDrag && this._options.treatHorzDragAsPageScroll()
+          const shouldPreventOther = !isVertDrag && !isHorzDrag
+          if (shouldPreventHorzDrag || shouldPreventOther) {
+            this._preventTouchDragProcess = true
+          }
+        }
       }
 
       this._touchMoveExceededManhattanDistance = true
@@ -393,9 +405,8 @@ export default class EventHandlerImp {
     if (!this._preventTouchDragProcess) {
       this._processEvent(this._makeCompatEvent(moveEvent, touch), this._handler.touchMoveEvent)
 
-      // we should prevent default in case of touch only
-      // to prevent scroll of the page
-      // preventDefault(moveEvent)
+      // Prevent default to stop page scrolling when processing chart events
+      this._preventDefault(moveEvent)
     }
   }
 
