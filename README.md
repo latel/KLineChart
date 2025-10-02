@@ -14,10 +14,10 @@ English | <a href="https://github.com/liihuu/KLineChart/blob/main/README.zh-CN.m
 <div align="center">
 
 [![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/liihuu/KLineChart/build.yml?logo=github)](https://github.com/liihuu/KLineChart/actions/workflows/build.yml)
-[![Version](https://badgen.net/npm/v/klinecharts)](https://www.npmjs.com/package/klinecharts)
-[![Size](https://badgen.net/bundlephobia/minzip/klinecharts@latest)](https://bundlephobia.com/result?p=klinecharts@latest)
-[![npms.io (maintenance)](https://img.shields.io/npms-io/quality-score/klinecharts)](https://www.npmjs.com/package/klinecharts)
-[![Typescript](https://badgen.net/npm/types/klinecharts)](types/index.d.ts)
+[![Version](https://badgen.net/npm/v/ok-klinechart)](https://www.npmjs.com/package/ok-klinechart)
+[![Size](https://badgen.net/bundlephobia/minzip/ok-klinechart@latest)](https://bundlephobia.com/result?p=ok-klinechart@latest)
+[![npms.io (maintenance)](https://img.shields.io/npms-io/quality-score/ok-klinechart)](https://www.npmjs.com/package/ok-klinechart)
+[![Typescript](https://badgen.net/npm/types/ok-klinechart)](types/index.d.ts)
 [![LICENSE](https://badgen.net/github/license/liihuu/KLineChart)](LICENSE)
 [![Docs](https://badgen.net/badge/docs%20by/vitepress/bd34fe)](https://vitepress.dev/)
 </div>
@@ -49,23 +49,23 @@ English | <a href="https://github.com/liihuu/KLineChart/blob/main/README.zh-CN.m
 ## 📦 Install
 ### Using npm
 ```bash
-npm install klinecharts --save
+npm install ok-klinechart --save
 ```
 
 ### Using yarn
 ```bash
-yarn add klinecharts
+yarn add ok-klinechart
 ```
 
 ### CDNs
 #### [unpkg](https://unpkg.com)
 ```html
-<script type="text/javascript" src="https://unpkg.com/klinecharts/dist/klinecharts.min.js"></script>
+<script type="text/javascript" src="https://unpkg.com/ok-klinechart/dist/klinecharts.min.js"></script>
 ```
 
 #### [jsDelivr](https://cdn.jsdelivr.net)
 ```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/klinecharts/dist/klinecharts.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ok-klinechart/dist/klinecharts.min.js"></script>
 ```
 
 ## 📄 Docs
